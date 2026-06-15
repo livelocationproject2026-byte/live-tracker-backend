@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Login</title>
+
+<link rel="stylesheet" href="auth.css">
+
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+</head>
+
+<body>
+
+<header class="header">
+
+    <a href="/" class="logo">
+        <span>LIVE</span> TRACKER
+    </a>
+
+    <div class="auth-buttons">
+
+        <a href="/" class="signup-btn">
+            Home
+        </a>
+
+    </div>
+
+</header>
+
+<div class="form-container">
+
+    <div class="form-box">
+
+        <h2>Login</h2>
+
+        <form id="loginForm">
+
+            <input
+            type="text"
+            id="userid"
+            placeholder="User ID"
+            required>
+
+            <div class="password-box">
+
+                <input
+                type="password"
+                id="loginPassword"
+                placeholder="Password"
+                required>
+
+                <i class='bx bx-hide eye-icon'
+                onclick="togglePassword('loginPassword', this)">
+                </i>
+
+            </div>
+
+            <button type="submit">
+                Login
+            </button>
+
+        </form>
+
+        <p>
+            Create New Account?
+            <a href="/create-account">
+                Sign Up
+            </a>
+        </p>
+
+    </div>
+
+</div>
+
+<script src="/script.js"></script>
+
+<script>
+
+document.getElementById("loginForm")
+.addEventListener("submit",
+
+async function(e){
+
+    e.preventDefault();
+
+    const userid =
+    document.getElementById("userid").value;
+
+    const password =
+    document.getElementById("loginPassword").value;
+
+    try{
+
+        const response =
+        await fetch("/login",{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+
+                userid,
+                password
+            })
+        });
+
+        const data =
+        await response.json();
+
+        if(data.success){
+
+            localStorage.setItem(
+                "user",
+                JSON.stringify(data.user)
+            );
+
+            window.location.href =
+            "/user-dashboard";
+
+        }else{
+
+            alert(data.message);
+        }
+
+    }catch(err){
+
+        console.log(err);
+
+        alert("Server Error");
+    }
+});
+
+</script>
+
+</body>
+</html>

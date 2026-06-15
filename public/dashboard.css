@@ -1,0 +1,136 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial;
+    text-decoration:none;
+}
+
+body{
+    background:#f4f6f9;
+}
+
+/* HEADER */
+
+.header{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px 10%;
+    background:#111;
+}
+
+.logo{
+    color:white;
+    font-size:30px;
+    font-weight:bold;
+}
+
+.logo span{
+    color:#00aaff;
+}
+
+.navbar{
+    display:flex;
+    gap:40px;
+}
+
+.navbar a{
+    color:white;
+    font-size:18px;
+}
+
+.navbar a:hover{
+    color:#00aaff;
+}
+
+.auth-buttons{
+    display:flex;
+    gap:15px;
+}
+
+.signup-btn,
+.login-btn{
+    padding:10px 20px;
+    border-radius:8px;
+    font-weight:bold;
+}
+
+.signup-btn{
+    background:#00aaff;
+    color:white;
+}
+
+.login-btn{
+    background:white;
+    color:black;
+}
+
+/* HOME */
+
+.home{
+    height:85vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+}
+
+.home-content h3{
+    font-size:35px;
+    margin-bottom:10px;
+}
+
+.home-content h1{
+    font-size:55px;
+    margin-bottom:20px;
+}
+
+.home-content h1 span{
+    color:#00aaff;
+}
+
+.home-content p{
+    font-size:20px;
+    color:#555;
+    margin-bottom:30px;
+}
+
+.tracking-text a{
+    background:#00aaff;
+    color:white;
+    padding:15px 30px;
+    border-radius:10px;
+    font-size:18px;
+}
+
+/* FOOTER */
+
+.footer{
+    background:#111;
+    color:white;
+    text-align:center;
+    padding:30px;
+}
+
+.down{
+    margin-bottom:20px;
+}
+
+.down a{
+    color:white;
+    font-size:30px;
+    margin:0 10px;
+}
+
+.list{
+    list-style:none;
+    display:flex;
+    justify-content:center;
+    gap:30px;
+}
+
+.list a{
+    color:white;
+}

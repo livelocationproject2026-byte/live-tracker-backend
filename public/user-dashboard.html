@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="user-dashboard.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <i class='bx bx-arrow-back back-icon' onclick="closeSidebar()"></i>
+        <h2>Menu</h2>
+    </div>
+    <!-- Added ID here to enable dynamic cross-origin parameter passing -->
+    <a href="http://10.243.246.221:3000" id="start-tracking-link">
+        <i class='bx bx-play-circle'></i> Start Tracking
+    </a>
+    <a href="#" onclick="showMailMessage()">
+        <i class='bx bx-help-circle'></i> Help & Support
+    </a>
+    <a href="/login" onclick="localStorage.clear();">
+        <i class='bx bx-log-out'></i> Logout
+    </a>
+</div>
+
+<header class="topbar">
+    <div class="menu-logo">
+        <i class='bx bx-menu menu-icon' onclick="toggleSidebar()"></i>
+        <h2>Live Tracking Dashboard</h2>
+    </div>
+    <div class="user-menu">
+        <button onclick="toggleDetails()">
+            Hi, <span id="name"></span>
+            <i class='bx bx-chevron-down'></i>
+        </button>
+        <div class="user-details" id="detailsBox">
+            <p><strong>User Id:</strong> <span id="userid"></span></p>
+            <p><strong>Email:</strong> <span id="email"></span></p>
+        </div>
+    </div>
+</header>
+
+<section class="dashboard-container">
+    <h1 class="page-title">Tracked Persons</h1>
+    <div id="historyData"></div>
+</section>
+
+<script>
+/**
+ * UI INTERFACE TOGLE CONTROLLERS
+ */
+function toggleSidebar(){
+    document.getElementById("sidebar").classList.add("active");
+}
+
+function closeSidebar(){
+    document.getElementById("sidebar").classList.remove("active");
+}
+
+function toggleDetails(){
+    const box = document.getElementById("detailsBox");
+    box.style.display = (box.style.display === "block") ? "none" : "block";
+}
+
+function showMailMessage(){
+    alert("Please send query to cse22070@cemk.ac.in");
+}
+
+/**
+ * SECURE ACCESS GUARD
+ * Validates tracking identities during execution. Intercepts session bypass attempts.
+ */
+const user = JSON.parse(localStorage.getItem("user"));
+if(user && user.userid){
+    document.getElementById("name").innerText = user.name;
+    document.getElementById("userid").innerText = user.userid;
+    document.getElementById("email").innerText = user.email;
+
+    // Bridges the cross-port localStorage data gap by appending URL queries safely
+    document.getElementById("start-tracking-link").href = `http://localhost:3000/?userid=${encodeURIComponent(user.userid)}&name=${encodeURIComponent(user.name)}&email=${encodeURIComponent(user.email)}`;
+} else {
+    window.location.href = "/login";
+}
+
+/**
+ * SAFE FOLDER TOGGLER
+ * Activates display configurations across safe structural tracking targets
+ */
+function toggleFolder(folderId){
+    const folder = document.getElementById(`folder-${folderId}`);
+    if(folder) {
+        folder.style.display = (folder.style.display === "none" || folder.style.display === "") ? "flex" : "none";
+    }
+}
+
+/**
+ * RELATIVE TIMESTAMP FORMATTING MATRIX
+ */
+function getTimeAgo(date){
+    const seconds = Math.floor((new Date() - new Date(date))/1000);
+    let interval = seconds / 86400;
+    if(interval > 1) return Math.floor(interval) + " days ago";
+    interval = seconds / 3600;
+    if(interval > 1) return Math.floor(interval) + " hours ago";
+    interval = seconds / 60;
+    if(interval > 1) return Math.floor(interval) + " mins ago";
+    return "Just now";
+}
+
+/**
+ * CORE RENDER ENGINE (HISTORICAL ENGINE DATA INJECTION ROUTINE)
+ * Fetches, structures, isolates, and builds interface folders dynamically
+ */
+async function loadTrackingHistory(){
+    try{
+        if(!user || !user.userid) return;
+        
+        const response = await fetch(`http://localhost:5000/get-locations/${user.userid}`);
+        const data = await response.json();
+
+        const grouped = {};
+        data.forEach(item => {
+            if(!grouped[item.personName]){
+                grouped[item.personName] = [];
+            }
+            grouped[item.personName].push(item);
+        });
+
+        let html = "";
+
+        Object.keys(grouped).forEach(person => {
+            const latest = grouped[person][0];
+            const safeDOMId = "user_" + user.userid.replace(/[^a-zA-Z0-9]/g, "") + "_" + person.replace(/[^a-zA-Z0-9]/g, "");
+
+            html += `
+            <div class="person-folder" id="container-${safeDOMId}">
+                <div class="folder-header" onclick="toggleFolder('${safeDOMId}')">
+                    <div class="folder-left">
+                        <i class='bx bxs-folder folder-icon'></i>
+                        <div>
+                            <h3>${person}</h3>
+                            <p>${grouped[person].length} Locations • Updated ${getTimeAgo(latest.createdAt)}</p>
+                        </div>
+                    </div>
+                    <button class="delete-person-btn" onclick="event.stopPropagation(); deletePerson(this)" data-person="${encodeURIComponent(person)}">
+                        <i class='bx bx-trash'></i> Delete Folder
+                    </button>
+                </div>
+                <div class="folder-content" id="folder-${safeDOMId}" style="display:none;">
+            `;
+
+            grouped[person].forEach(location => {
+                html += `
+                <div class="location-card" id="card-${location._id}">
+                    <div class="location-header">
+                        <h4><i class='bx bx-map'></i> Location Record</h4>
+                        <button class="delete-location-btn" onclick="deleteLocation('${location._id}')">
+                            <i class='bx bx-trash'></i>
+                        </button>
+                    </div>
+                    <div class="coordinate-box">
+                        <div>
+                            <span>Latitude</span>
+                            <h3>${Number(location.latitude).toFixed(6)}</h3>
+                        </div>
+                        <div>
+                            <span>Longitude</span>
+                            <h3>${Number(location.longitude).toFixed(6)}</h3>
+                        </div>
+                    </div>
+                    <p class="timestamp">
+                        <i class='bx bx-time'></i> ${new Date(location.createdAt).toLocaleString()}
+                    </p>
+                </div>
+                `;
+            });
+
+            html += `</div></div>`;
+        });
+
+        document.getElementById("historyData").innerHTML = html || "<p style='color:#666; padding:20px;'>No tracked locations found for this user.</p>";
+
+    }catch(err){
+        console.error("Critical breakdown tracking user updates configuration error:", err);
+    }
+}
+
+async function deleteLocation(id){
+    if(!confirm("Delete this coordinate record?")) return;
+    try {
+        const response = await fetch(`http://localhost:5000/delete-location/${id}/${user.userid}`, {
+            method: "DELETE"
+        });
+        const resData = await response.json();
+        if(resData.success) {
+            loadTrackingHistory();
+        } else {
+            alert("Failed to delete record.");
+        }
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+async function deletePerson(element){
+    const rawPerson = element.getAttribute("data-person");
+    const personName = decodeURIComponent(rawPerson);
+    
+    if(!confirm(`Delete all coordinates and folder history for ${personName}?`)) return;
+    try {
+        const response = await fetch(`http://localhost:5000/delete-person/${rawPerson}/${user.userid}`, {
+            method: "DELETE"
+        });
+        const resData = await response.json();
+        if(resData.success) {
+            loadTrackingHistory();
+        } else {
+            alert("Failed to delete user history.");
+        }
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+window.deleteLocation = deleteLocation;
+window.deletePerson = deletePerson;
+window.toggleFolder = toggleFolder;
+
+loadTrackingHistory();
+</script>
+</body>
+</html>

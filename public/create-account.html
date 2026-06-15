@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Create Account</title>
+
+<link rel="stylesheet" href="auth.css">
+
+</head>
+
+<body>
+
+<header class="header">
+
+    <a href="/" class="logo">
+        <span>LIVE</span> TRACKER
+    </a>
+
+    <div class="auth-buttons">
+
+        <a href="/" class="signup-btn">
+            Home
+        </a>
+
+    </div>
+
+</header>
+
+<div class="form-container">
+
+    <div class="form-box">
+
+        <h2>Create Account</h2>
+
+        <!-- REMOVE action="/create-account" -->
+        <form id="createAccountForm">
+
+            <input
+            type="text"
+            id="name"
+            placeholder="Full Name"
+            required>
+
+            <input
+            type="email"
+            id="email"
+            placeholder="Email"
+            required>
+
+            <input
+            type="text"
+            id="userid"
+            placeholder="User ID"
+            required>
+
+            <p id="error"></p>
+
+            <div class="userid-rules">
+
+                <p>User ID must contain:</p>
+
+                <ul>
+                    <li>✔ 8-50 characters</li>
+                    <li>✔ One uppercase letter</li>
+                    <li>✔ One lowercase letter</li>
+                    <li>✔ One number</li>
+                    <li>✔ One special character</li>
+                </ul>
+
+            </div>
+
+            <textarea
+            id="address"
+            placeholder="Address"></textarea>
+
+            <p>
+                Already have an account?
+                <a href="/login">
+                    Log In
+                </a>
+            </p>
+
+            <button type="submit">
+                Next
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script src="/script.js"></script>
+
+<script>
+
+function validateUserId(){
+
+    const userid =
+    document.getElementById("userid").value;
+
+    const error =
+    document.getElementById("error");
+
+    const pattern =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,50}$/;
+
+    if(!pattern.test(userid)){
+
+        error.innerText =
+        "User ID must contain uppercase, lowercase, number & special character";
+
+        return false;
+    }
+
+    error.innerText = "";
+
+    return true;
+}
+
+
+
+/* CREATE ACCOUNT */
+
+document
+.getElementById("createAccountForm")
+.addEventListener("submit",
+
+async function(e){
+
+    e.preventDefault();
+
+    if(!validateUserId()){
+        return;
+    }
+
+    const name =
+    document.getElementById("name").value;
+
+    const email =
+    document.getElementById("email").value;
+
+    const userid =
+    document.getElementById("userid").value;
+
+    const address =
+    document.getElementById("address").value;
+
+    try{
+
+        const response =
+        await fetch("/create-account",{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+
+                name,
+                email,
+                userid,
+                address
+            })
+        });
+
+        const data =
+        await response.json();
+
+        if(data.success){
+
+            // REDIRECT TO PASSWORD PAGE
+            window.location.href = "/password";
+
+        }else{
+
+            alert(data.message);
+        }
+
+    }catch(err){
+
+        console.log(err);
+
+        alert("Server Error");
+    }
+});
+
+</script>
+
+</body>
+</html>
