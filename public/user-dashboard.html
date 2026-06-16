@@ -124,7 +124,7 @@ async function loadTrackingHistory(){
         // Loader dikhane ke liye takki pata chale request ja rahi hai
         document.getElementById("historyData").innerHTML = "<p style='color:#666; padding:20px;'>Loading tracking data from Render server (May take 50s if backend is sleeping)...</p>";
 
-        const response = await fetch(`https://live-tracker-backend.onrender.com/get-locations/${user.userid}`);
+        const response = await fetch(`https://live-tracker-backend-nj1r.onrender.com${user.userid}`);
         
         if (!response.ok) {
             throw new Error(`Backend server returned error status: ${response.status}`);
@@ -219,7 +219,7 @@ async function loadTrackingHistory(){
 async function deleteLocation(id){
     if(!confirm("Delete this coordinate record?")) return;
     try {
-        const response = await fetch(`https://live-tracker-backend.onrender.com/delete-location/${id}/${user.userid}`, {
+        const response = await fetch(`https://live-tracker-backend-nj1r.onrender.com${id}/${user.userid}`, {
             method: "DELETE"
         });
         const resData = await response.json();
