@@ -195,19 +195,21 @@ app.post("/login", async (req, res) => {
     }
 });
 
-// ================= SAVE LOCATION =================
+// ================= 1. SAVE LOCATION (FIXED) =================
 app.post("/save-location", async (req, res) => {
     try {
-        const { personName, latitude, longitude, googleLink } = req.body;
+        // Yahan userid ko nikalna zaroori tha
+        const { userid, personName, latitude, longitude, googleLink } = req.body; 
 
-        if (latitude === undefined || longitude === undefined) {
+        if (latitude === undefined || longitude === undefined || !userid) {
             return res.json({
                 success: false,
-                message: "Coordinates Missing"
+                message: "Coordinates or UserID Missing"
             });
         }
 
         const newLocation = new Location({
+            userid, // Yahan userid pass karna zaroori tha
             personName,
             latitude,
             longitude,
@@ -217,21 +219,48 @@ app.post("/save-location", async (req, res) => {
         await newLocation.save();
         res.json({ success: true });
     } catch (err) {
-        console.log(err);
+        console.log("MongoDB Save Error: ", err);
         res.status(500).json({ success: false });
     }
 });
 
-// ================= GET LOCATIONS =================
+// ================= 2. GET LOCATIONS FOR SPECIFIC USER (FIXED) =================
 app.get("/get-locations/:userid", async (req, res) => {
     try {
-        const locations = await Location.find().sort({ createdAt: -1 });
+        // Sirf us logged-in user ka data nikalne ke liye filter lagaya
+        const locations = await Location.find({ userid: req.params.userid }).sort({ createdAt: -1 });
         res.json(locations);
     } catch (err) {
         console.log(err);
         res.status(500).json([]);
     }
 });
+
+//========= 3. DELETE ONE COORDINATE (FIXED TO MATCH DASHBOARD) ===========
+app.delete("/delete-location/:id/:userid", async (req, res) => {
+    try {
+        await Location.findOneAndDelete({ _id: req.params.id, userid: req.params.userid });
+        res.json({ success: true });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false });
+    }
+});
+
+//============== 4. DELETE ALL COORDINATES OF ONE PERSON (FIXED) =========
+app.delete("/delete-person/:personName/:userid", async (req, res) => {
+    try {
+        await Location.deleteMany({
+            personName: decodeURIComponent(req.params.personName),
+            userid: req.params.userid
+        });
+        res.json({ success: true });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false });
+    }
+});
+
 
 // ================= SERVER (Modified Dynamic Port) =================
 const PORT = process.env.PORT || 5000;
