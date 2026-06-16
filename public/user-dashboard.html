@@ -80,7 +80,7 @@ if(user && user.userid){
     document.getElementById("email").innerText = user.email;
 
     // Bridges the cross-port localStorage data gap by appending URL queries safely
-    document.getElementById("start-tracking-link").href = `https://live-tracking-frontend-bxd5i4tg2-live-location-s-projects.vercel.app/?userid=${encodeURIComponent(user.userid)}&name=${encodeURIComponent(user.name)}&email=${encodeURIComponent(user.email)}`;
+    document.getElementById("start-tracking-link").href = `https://live-tracking-frontend-eight.vercel.app/?userid=${encodeURIComponent(user.userid)}&name=${encodeURIComponent(user.name)}&email=${encodeURIComponent(user.email)}`;
 } else {
     window.location.href = "/login";
 }
