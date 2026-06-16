@@ -1,32 +1,30 @@
 const mongoose = require("mongoose");
 
-const LocationSchema =
-new mongoose.Schema({
-
-    personName:{
-        type:String,
-        required:true
+const LocationSchema = new mongoose.Schema({
+    // IS FIELD KO ADD KARNA ZAROORI THA
+    userid: {
+        type: String,
+        required: true
     },
-
-    latitude:{
-        type:Number,
-        required:true
+    personName: {
+        type: String,
+        required: true
     },
-
-    longitude:{
-        type:Number,
-        required:true
+    latitude: {
+        type: Number,
+        required: true
     },
-
-    googleLink:{
-        type:String
+    longitude: {
+        type: Number,
+        required: true
     },
-
-    createdAt:{
-        type:Date,
-        default:Date.now
+    googleLink: {
+        type: String
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 });
 
-module.exports =
-mongoose.model("locations", LocationSchema);
+module.exports = mongoose.model("locations", LocationSchema);
