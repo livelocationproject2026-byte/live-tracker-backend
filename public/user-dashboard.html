@@ -124,7 +124,7 @@ async function loadTrackingHistory(){
         // Loader dikhane ke liye takki pata chale request ja rahi hai
         document.getElementById("historyData").innerHTML = "<p style='color:#666; padding:20px;'>Loading tracking data from Render server (May take 50s if backend is sleeping)...</p>";
 
-        const response = await fetch(`https://live-tracker-backend-nj1r.onrender.com${user.userid}`);
+        const response = await fetch(`https://live-tracker-backend-nj1r.onrender.com/get-locations/${encodeURIComponent(user.userid)}`);
         
         if (!response.ok) {
             throw new Error(`Backend server returned error status: ${response.status}`);
@@ -219,7 +219,7 @@ async function loadTrackingHistory(){
 async function deleteLocation(id){
     if(!confirm("Delete this coordinate record?")) return;
     try {
-        const response = await fetch(`https://live-tracker-backend-nj1r.onrender.com${id}/${user.userid}`, {
+        const response = await fetch(`https://live-tracker-backend-nj1r.onrender.com/delete-location/${id}/${encodeURIComponent(user.userid)}`, {
             method: "DELETE"
         });
         const resData = await response.json();
@@ -239,7 +239,7 @@ async function deletePerson(element){
     
     if(!confirm(`Delete all coordinates and folder history for ${personName}?`)) return;
     try {
-        const response = await fetch(`https://live-tracker-backend.onrender.com/delete-person/${rawPerson}/${user.userid}`, {
+        const response = await fetch(`https://live-tracker-backend-nj1r.onrender.com/delete-person/${rawPerson}/${encodeURIComponent(user.userid)}`, {
             method: "DELETE"
         });
         const resData = await response.json();
