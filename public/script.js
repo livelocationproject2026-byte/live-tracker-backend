@@ -1,5 +1,5 @@
 function showMailMessage(){
-    alert("Please send query to cse22070@cemk.ac.in");
+    alert("Please send query to livelocationproject2026@gmail.com");
 }
 
 /* PASSWORD SHOW HIDE */
