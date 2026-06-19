@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const LocationSchema = new mongoose.Schema({
-    // IS FIELD KO ADD KARNA ZAROORI THA
+    
     userid: {
         type: String,
         required: true
@@ -17,6 +17,10 @@ const LocationSchema = new mongoose.Schema({
     longitude: {
         type: Number,
         required: true
+    },
+    placeName: {
+        type: String,
+        default: "Fetching location details..."
     },
     googleLink: {
         type: String

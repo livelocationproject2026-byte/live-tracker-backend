@@ -44,6 +44,23 @@ mongoose.connect(MONGODB_URI)
 // TEMP USER STORAGE
 let tempUser = {};
 
+// STATEMENT: fetch address/place from OpenStreetMap API  
+async function getAddressFromCoordinates(lat, lng) {
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`, {
+            headers: {
+                'User-Agent': 'LiveTrackingSystem/1.0 (livelocationproject2026@gmail.com)'
+            }
+        });
+        if (!response.ok) return `Coordinates: ${lat}, ${lng}`;
+        const data = await response.json();
+        return data.display_name || data.name || `Coordinates: ${lat}, ${lng}`;
+    } catch (err) {
+        console.error("Reverse Geocoding Failure: ", err);
+        return `Coordinates: ${lat}, ${lng}`;
+    }
+}
+
 // ================= ROUTES =================
 
 // HOME
@@ -198,7 +215,7 @@ app.post("/login", async (req, res) => {
 // ================= 1. SAVE LOCATION (FIXED) =================
 app.post("/save-location", async (req, res) => {
     try {
-        // Yahan userid ko nikalna zaroori tha
+        
         const { userid, personName, latitude, longitude, googleLink } = req.body; 
 
         if (latitude === undefined || longitude === undefined || !userid) {
@@ -208,11 +225,14 @@ app.post("/save-location", async (req, res) => {
             });
         }
 
+        const computedPlaceName = await getAddressFromCoordinates(latitude, longitude);
+
         const newLocation = new Location({
             userid, // Yahan userid pass karna zaroori tha
             personName,
             latitude,
             longitude,
+            placeName: computedPlaceName,
             googleLink
         });
 

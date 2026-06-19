@@ -14,7 +14,6 @@
         <i class='bx bx-arrow-back back-icon' onclick="closeSidebar()"></i>
         <h2>Menu</h2>
     </div>
-    <!-- Added ID here to enable dynamic cross-origin parameter passing -->
     <a href="http://10.243.246.221:3000" id="start-tracking-link">
         <i class='bx bx-play-circle'></i> Start Tracking
     </a>
@@ -71,7 +70,6 @@ function showMailMessage(){
 
 /**
  * SECURE ACCESS GUARD
- * Validates tracking identities during execution. Intercepts session bypass attempts.
  */
 const user = JSON.parse(localStorage.getItem("user"));
 if(user && user.userid){
@@ -79,7 +77,6 @@ if(user && user.userid){
     document.getElementById("userid").innerText = user.userid;
     document.getElementById("email").innerText = user.email;
 
-    // Bridges the cross-port localStorage data gap by appending URL queries safely
     document.getElementById("start-tracking-link").href = `https://live-tracking-frontend-eight.vercel.app/?userid=${encodeURIComponent(user.userid)}&name=${encodeURIComponent(user.name)}&email=${encodeURIComponent(user.email)}`;
 } else {
     window.location.href = "/login";
@@ -87,7 +84,6 @@ if(user && user.userid){
 
 /**
  * SAFE FOLDER TOGGLER
- * Activates display configurations across safe structural tracking targets
  */
 function toggleFolder(folderId){
     const folder = document.getElementById(`folder-${folderId}`);
@@ -110,30 +106,11 @@ function getTimeAgo(date){
     return "Just now";
 }
 
-/**
- * REVERSE GEOCODING UTILITY
- * Fetches real human-readable addresses using OpenStreetMap's Nominatim API
- */
-async function getPlaceName(lat, lng) {
-    try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`, {
-            headers: {
-                'User-Agent': 'LiveTrackingApp/1.0' // OpenStreetMap requests a valid User-Agent header
-            }
-        });
-        if (!response.ok) return "Location Name Unavailable";
-        const data = await response.json();
-        // Returns structured display address, or generic fallback if missing
-        return data.display_name || data.name || `Location (${lat}, ${lng})`;
-    } catch (err) {
-        console.error("Geocoding failed:", err);
-        return "Location Name Unavailable";
-    }
-}
+// STATEMENT: Client-side dynamic API lookups (getPlaceName function) ko poori tarah remove kar diya gaya hai network choking se bachne ke liye.
 
 /**
- * CORE RENDER ENGINE (UPDATED WITH REVERSE GEOCODING)
- * Fetches, structures, resolves addresses, and builds interface folders dynamically
+ * CORE RENDER ENGINE (OPTIMIZED WITH PRE-SAVED DB PLACENAME)
+ * STATEMENT: Loops ke andar se 'async API requests' hata kar linear sync rendering restore ki gayi hai.
  */
 async function loadTrackingHistory(){
     try{
@@ -174,8 +151,8 @@ async function loadTrackingHistory(){
 
         let html = "";
 
-        // Loop uniquely structured to handle async address lookups sequentially via native array handling
-        for (const person of Object.keys(grouped)) {
+        // STATEMENT: 'for...of' loop ko fir se efficient native 'forEach' array loop se replace kar diya gaya hai kyunki ab client-side par koi async lookup delay nahi bacha.
+        Object.keys(grouped).forEach(person => {
             const latest = grouped[person][0];
             const safeDOMId = "user_" + user.userid.replace(/[^a-zA-Z0-9]/g, "") + "_" + person.replace(/[^a-zA-Z0-9]/g, "");
 
@@ -196,12 +173,12 @@ async function loadTrackingHistory(){
                 <div class="folder-content" id="folder-${safeDOMId}" style="display:none;">
             `;
 
-            for (const location of grouped[person]) {
+            grouped[person].forEach(location => {
                 const lat = location.latitude ? Number(location.latitude).toFixed(6) : "0.000000";
                 const lng = location.longitude ? Number(location.longitude).toFixed(6) : "0.000000";
                 
-                // Fetching actual place name using lat and lng values dynamically
-                const placeName = await getPlaceName(location.latitude, location.longitude);
+                // STATEMENT: Database mein store kiye huye 'placeName' parameter ko fallback handling ke sath direct extract kiya gaya hai.
+                const dbPlaceName = location.placeName || "Location name parsing error or legacy record";
 
                 html += `
                 <div class="location-card" id="card-${location._id}">
@@ -213,8 +190,8 @@ async function loadTrackingHistory(){
                     </div>
                     
                     <div style="margin-bottom:15px; background: #eef7ff; padding: 12px; border-radius: 10px; border: 1px dashed #0099ff;">
-                        <span style="color:#555; font-size:12px; font-weight:bold; display:block; margin-bottom:4px;"><i class='bx bxs-landmark'></i> Resolved Address</span>
-                        <p style="color:#111; font-size:14px; line-height:1.4; font-weight:500;">${placeName}</p>
+                        <span style="color:#007aff; font-size:11px; font-weight:bold; display:block; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;"><i class='bx bxs-navigation'></i> Stored Address Location</span>
+                        <p style="color:#222; font-size:14px; line-height:1.4; font-weight:500; margin:0;">${dbPlaceName}</p>
                     </div>
 
                     <div class="coordinate-box">
@@ -232,10 +209,10 @@ async function loadTrackingHistory(){
                     </p>
                 </div>
                 `;
-            }
+            });
 
             html += `</div></div>`;
-        }
+        });
 
         document.getElementById("historyData").innerHTML = html;
 
