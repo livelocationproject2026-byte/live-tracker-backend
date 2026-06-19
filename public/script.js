@@ -33,7 +33,7 @@ function validateUserId(){
     const error = document.getElementById("error");
 
     const pattern =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,50}$/;
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_]).{8,50}$/;
 
     if(!pattern.test(userid)){
 
