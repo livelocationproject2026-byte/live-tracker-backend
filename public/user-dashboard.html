@@ -111,8 +111,29 @@ function getTimeAgo(date){
 }
 
 /**
- * CORE RENDER ENGINE (HISTORICAL ENGINE DATA INJECTION ROUTINE)
- * Fetches, structures, isolates, and builds interface folders dynamically
+ * REVERSE GEOCODING UTILITY
+ * Fetches real human-readable addresses using OpenStreetMap's Nominatim API
+ */
+async function getPlaceName(lat, lng) {
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`, {
+            headers: {
+                'User-Agent': 'LiveTrackingApp/1.0' // OpenStreetMap requests a valid User-Agent header
+            }
+        });
+        if (!response.ok) return "Location Name Unavailable";
+        const data = await response.json();
+        // Returns structured display address, or generic fallback if missing
+        return data.display_name || data.name || `Location (${lat}, ${lng})`;
+    } catch (err) {
+        console.error("Geocoding failed:", err);
+        return "Location Name Unavailable";
+    }
+}
+
+/**
+ * CORE RENDER ENGINE (UPDATED WITH REVERSE GEOCODING)
+ * Fetches, structures, resolves addresses, and builds interface folders dynamically
  */
 async function loadTrackingHistory(){
     try{
@@ -121,7 +142,6 @@ async function loadTrackingHistory(){
             return;
         }
         
-        // Loader dikhane ke liye takki pata chale request ja rahi hai
         document.getElementById("historyData").innerHTML = "<p style='color:#666; padding:20px;'>Loading tracking data from Render server (May take 50s if backend is sleeping)...</p>";
 
         const response = await fetch(`https://live-tracker-backend-nj1r.onrender.com/get-locations/${encodeURIComponent(user.userid)}`);
@@ -132,7 +152,6 @@ async function loadTrackingHistory(){
 
         const data = await response.json();
 
-        // SAFEGUARD: Agar backend array ke badle object bhej de toh crash nahi hoga
         if (!Array.isArray(data)) {
             console.error("Expected array but received:", data);
             document.getElementById("historyData").innerHTML = `<p style='color:#ff3b30; padding:20px;'><b>Backend Error:</b> ${data.message || 'Invalid data format from server.'}</p>`;
@@ -146,7 +165,7 @@ async function loadTrackingHistory(){
 
         const grouped = {};
         data.forEach(item => {
-            if(!item || !item.personName) return; // Malformed data ignore karne ke liye
+            if(!item || !item.personName) return; 
             if(!grouped[item.personName]){
                 grouped[item.personName] = [];
             }
@@ -155,7 +174,8 @@ async function loadTrackingHistory(){
 
         let html = "";
 
-        Object.keys(grouped).forEach(person => {
+        // Loop uniquely structured to handle async address lookups sequentially via native array handling
+        for (const person of Object.keys(grouped)) {
             const latest = grouped[person][0];
             const safeDOMId = "user_" + user.userid.replace(/[^a-zA-Z0-9]/g, "") + "_" + person.replace(/[^a-zA-Z0-9]/g, "");
 
@@ -176,9 +196,12 @@ async function loadTrackingHistory(){
                 <div class="folder-content" id="folder-${safeDOMId}" style="display:none;">
             `;
 
-            grouped[person].forEach(location => {
+            for (const location of grouped[person]) {
                 const lat = location.latitude ? Number(location.latitude).toFixed(6) : "0.000000";
                 const lng = location.longitude ? Number(location.longitude).toFixed(6) : "0.000000";
+                
+                // Fetching actual place name using lat and lng values dynamically
+                const placeName = await getPlaceName(location.latitude, location.longitude);
 
                 html += `
                 <div class="location-card" id="card-${location._id}">
@@ -188,6 +211,12 @@ async function loadTrackingHistory(){
                             <i class='bx bx-trash'></i>
                         </button>
                     </div>
+                    
+                    <div style="margin-bottom:15px; background: #eef7ff; padding: 12px; border-radius: 10px; border: 1px dashed #0099ff;">
+                        <span style="color:#555; font-size:12px; font-weight:bold; display:block; margin-bottom:4px;"><i class='bx bxs-landmark'></i> Resolved Address</span>
+                        <p style="color:#111; font-size:14px; line-height:1.4; font-weight:500;">${placeName}</p>
+                    </div>
+
                     <div class="coordinate-box">
                         <div>
                             <span>Latitude</span>
@@ -203,10 +232,10 @@ async function loadTrackingHistory(){
                     </p>
                 </div>
                 `;
-            });
+            }
 
             html += `</div></div>`;
-        });
+        }
 
         document.getElementById("historyData").innerHTML = html;
 
